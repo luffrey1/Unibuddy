@@ -122,7 +122,9 @@ export default function Header() {
       </div>
       <nav className="flex items-center">
         <DarkModeToggle />
-        <HelpMenu />
+        <span className="hidden sm:inline">
+          <HelpMenu />
+        </span>
       </nav>
     </header>
   )
