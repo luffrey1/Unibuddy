@@ -11,12 +11,25 @@ const MAX_HEIGHT = 900
 const MIN_FONT = 14
 const MAX_FONT = 28
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 700)
+  useEffect(() => {
+    function onResize() {
+      setIsMobile(window.innerWidth < 700)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return isMobile
+}
+
 // Helper para limitar valores
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val))
 }
 
 export default function ChatWindow() {
+  const isMobile = useIsMobile()
   const [messages, setMessages] = useState([
     { from: 'bot', text: '¡Hola! Soy Unibuddy, tu asistente universitario de Medicina. ¿En qué puedo ayudarte hoy?', ts: Date.now() }
   ])
@@ -70,8 +83,9 @@ export default function ChatWindow() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Drag window
+  // Drag window (solo escritorio)
   useEffect(() => {
+    if (isMobile) return
     function onMove(e) {
       if (!dragging) return
       const clientX = e.touches ? e.touches[0].clientX : e.clientX
@@ -94,10 +108,11 @@ export default function ChatWindow() {
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('touchend', onUp)
     }
-  }, [dragging, size.width, size.height])
+  }, [dragging, size.width, size.height, isMobile])
 
-  // Resize window (todas las direcciones)
+  // Resize window (solo escritorio)
   useEffect(() => {
+    if (isMobile) return
     function onMove(e) {
       if (!resizing) return
       const clientX = e.touches ? e.touches[0].clientX : e.clientX
@@ -138,10 +153,11 @@ export default function ChatWindow() {
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('touchend', onUp)
     }
-  }, [resizing, position])
+  }, [resizing, position, isMobile])
 
   // Drag handle
   function startDrag(e) {
+    if (isMobile) return
     const clientX = e.touches ? e.touches[0].clientX : e.clientX
     const clientY = e.touches ? e.touches[0].clientY : e.clientY
     const rect = sectionRef.current.getBoundingClientRect()
@@ -151,6 +167,7 @@ export default function ChatWindow() {
 
   // Resize handles
   function startResize(dir, e) {
+    if (isMobile) return
     e.stopPropagation()
     setResizing(dir)
   }
@@ -176,64 +193,105 @@ export default function ChatWindow() {
     }
   }
 
+  // Estilos y controles según dispositivo
+  const sectionStyle = isMobile
+    ? {
+        width: '100%',
+        maxWidth: '400px',
+        minWidth: '0',
+        height: 'calc(100dvh - 56px)',
+        maxHeight: 'calc(100dvh - 56px)',
+        minHeight: 'calc(100dvh - 56px)',
+        fontSize: fontSize,
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        top: '56px',
+        zIndex: 10,
+        boxShadow: 'none',
+        borderRadius: 0,
+        border: 'none',
+        margin: '0 auto',
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'auto',
+      }
+    : {
+        width: size.width,
+        height: size.height,
+        fontSize: fontSize,
+        position: 'fixed',
+        left: position.x,
+        top: position.y,
+        zIndex: 100,
+        minWidth: MIN_WIDTH,
+        minHeight: MIN_HEIGHT,
+        maxWidth: MAX_WIDTH,
+        maxHeight: MAX_HEIGHT,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        userSelect: dragging ? 'none' : 'auto',
+        transition: 'box-shadow 0.2s',
+      }
+
   return (
     <>
       <a href="#chat-input" className="sr-only focus:not-sr-only absolute left-2 top-2 bg-primary text-white px-2 py-1 rounded z-50">Saltar al input de chat</a>
       <section
         ref={sectionRef}
-        style={{
-          width: size.width,
-          height: size.height,
-          fontSize: fontSize,
-          position: 'fixed',
-          left: position.x,
-          top: position.y,
-          zIndex: 100,
-          minWidth: MIN_WIDTH,
-          minHeight: MIN_HEIGHT,
-          maxWidth: MAX_WIDTH,
-          maxHeight: MAX_HEIGHT,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-          userSelect: dragging ? 'none' : 'auto',
-          transition: 'box-shadow 0.2s',
-        }}
-        className="w-full max-w-xl h-[75vh] flex flex-col bg-[var(--color-glass)] dark:bg-[var(--color-glass-dark)] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-md animate-fade-in"
+        style={sectionStyle}
+        className={
+          isMobile
+            ? "flex flex-col bg-[var(--color-glass)] dark:bg-[var(--color-glass-dark)] backdrop-blur-md animate-fade-in"
+            : "w-full max-w-xl h-[75vh] flex flex-col bg-[var(--color-glass)] dark:bg-[var(--color-glass-dark)] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-md animate-fade-in"
+        }
         aria-label="Ventana de chat con Unibuddy"
         role="region"
       >
-        {/* Drag handle barra superior */}
-        <div
-          style={{position: 'absolute', top: 0, left: 0, width: '100%', height: 32, cursor: dragging ? 'grabbing' : 'grab', zIndex: 11, borderTopLeftRadius: 18, borderTopRightRadius: 18, background: 'rgba(255,255,255,0.01)'}}
-          onMouseDown={startDrag}
-          onTouchStart={startDrag}
-          aria-label="Mover chat"
-        />
-        {/* Controles de fuente y resize */}
-        <div style={{position: 'absolute', top: 8, right: 12, zIndex: 12, display: 'flex', alignItems: 'center', gap: 4}}>
-          <button
-            aria-label="Reducir tamaño de fuente"
-            onClick={() => setFontSize(f => Math.max(MIN_FONT, f - 2))}
-            style={{ fontSize: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', marginRight: 2 }}
-          >A-</button>
-          <button
-            aria-label="Aumentar tamaño de fuente"
-            onClick={() => setFontSize(f => Math.min(MAX_FONT, f + 2))}
-            style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', marginRight: 4 }}
-          >A+</button>
-        </div>
-        {/* Resize handles (esquinas y bordes) */}
-        {/* Esquinas */}
-        <div onMouseDown={e => startResize('top-left', e)} onTouchStart={e => startResize('top-left', e)} style={{position:'absolute',top:-6,left:-6,width:12,height:12,cursor:'nwse-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('top-right', e)} onTouchStart={e => startResize('top-right', e)} style={{position:'absolute',top:-6,right:-6,width:12,height:12,cursor:'nesw-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('bottom-left', e)} onTouchStart={e => startResize('bottom-left', e)} style={{position:'absolute',bottom:-6,left:-6,width:12,height:12,cursor:'nesw-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('bottom-right', e)} onTouchStart={e => startResize('bottom-right', e)} style={{position:'absolute',bottom:-6,right:-6,width:12,height:12,cursor:'nwse-resize',zIndex:12}} />
-        {/* Bordes */}
-        <div onMouseDown={e => startResize('top', e)} onTouchStart={e => startResize('top', e)} style={{position:'absolute',top:-6,left:12,right:12,height:12,cursor:'ns-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('bottom', e)} onTouchStart={e => startResize('bottom', e)} style={{position:'absolute',bottom:-6,left:12,right:12,height:12,cursor:'ns-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('left', e)} onTouchStart={e => startResize('left', e)} style={{position:'absolute',left:-6,top:12,bottom:12,width:12,cursor:'ew-resize',zIndex:12}} />
-        <div onMouseDown={e => startResize('right', e)} onTouchStart={e => startResize('right', e)} style={{position:'absolute',right:-6,top:12,bottom:12,width:12,cursor:'ew-resize',zIndex:12}} />
+        {/* Drag handle barra superior solo escritorio */}
+        {!isMobile && (
+          <div
+            style={{position: 'absolute', top: 0, left: 0, width: '100%', height: 32, cursor: dragging ? 'grabbing' : 'grab', zIndex: 11, borderTopLeftRadius: 18, borderTopRightRadius: 18, background: 'rgba(255,255,255,0.01)'}}
+            onMouseDown={startDrag}
+            onTouchStart={startDrag}
+            aria-label="Mover chat"
+          />
+        )}
+        {/* Controles de fuente y resize solo escritorio */}
+        {!isMobile && (
+          <div style={{position: 'absolute', top: 8, right: 12, zIndex: 12, display: 'flex', alignItems: 'center', gap: 4}}>
+            <button
+              aria-label="Reducir tamaño de fuente"
+              onClick={() => setFontSize(f => Math.max(MIN_FONT, f - 2))}
+              style={{ fontSize: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', marginRight: 2 }}
+            >A-</button>
+            <button
+              aria-label="Aumentar tamaño de fuente"
+              onClick={() => setFontSize(f => Math.min(MAX_FONT, f + 2))}
+              style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: '#2563eb', marginRight: 4 }}
+            >A+</button>
+          </div>
+        )}
+        {/* Resize handles solo escritorio */}
+        {!isMobile && <>
+          {/* Esquinas */}
+          <div onMouseDown={e => startResize('top-left', e)} onTouchStart={e => startResize('top-left', e)} style={{position:'absolute',top:-6,left:-6,width:12,height:12,cursor:'nwse-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('top-right', e)} onTouchStart={e => startResize('top-right', e)} style={{position:'absolute',top:-6,right:-6,width:12,height:12,cursor:'nesw-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('bottom-left', e)} onTouchStart={e => startResize('bottom-left', e)} style={{position:'absolute',bottom:-6,left:-6,width:12,height:12,cursor:'nesw-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('bottom-right', e)} onTouchStart={e => startResize('bottom-right', e)} style={{position:'absolute',bottom:-6,right:-6,width:12,height:12,cursor:'nwse-resize',zIndex:12}} />
+          {/* Bordes */}
+          <div onMouseDown={e => startResize('top', e)} onTouchStart={e => startResize('top', e)} style={{position:'absolute',top:-6,left:12,right:12,height:12,cursor:'ns-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('bottom', e)} onTouchStart={e => startResize('bottom', e)} style={{position:'absolute',bottom:-6,left:12,right:12,height:12,cursor:'ns-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('left', e)} onTouchStart={e => startResize('left', e)} style={{position:'absolute',left:-6,top:12,bottom:12,width:12,cursor:'ew-resize',zIndex:12}} />
+          <div onMouseDown={e => startResize('right', e)} onTouchStart={e => startResize('right', e)} style={{position:'absolute',right:-6,top:12,bottom:12,width:12,cursor:'ew-resize',zIndex:12}} />
+        </>}
         {/* Mensajes */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-2" tabIndex={0} aria-live="polite" style={{fontSize: fontSize}}>
+        <div
+          className="flex-1 overflow-y-auto p-6 space-y-2"
+          tabIndex={0}
+          aria-live="polite"
+          style={{ fontSize: fontSize, flex: '1 1 0%', minHeight: 0 }}
+        >
           {messages.map((msg, i) => (
             <MessageBubble key={i} from={msg.from} text={msg.text} ts={msg.ts} animate fontSize={fontSize} />
           ))}

@@ -115,7 +115,7 @@ function HelpMenu() {
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-20 w-full flex items-center justify-between px-6 py-3 bg-[var(--color-glass)] dark:bg-[var(--color-glass-dark)] backdrop-blur-md shadow-lg border-b border-gray-200 dark:border-gray-800" role="banner">
+    <header className="header-main sticky top-0 z-20 w-full flex items-center justify-between px-6 py-3 bg-[var(--color-glass)] dark:bg-[var(--color-glass-dark)] backdrop-blur-md shadow-lg border-b border-gray-200 dark:border-gray-800" role="banner" style={{height: '56px', minHeight: '56px', maxHeight: '56px', position: 'fixed', top: 0, left: 0, right: 0}}>
       <div className="flex items-center">
         <Logo />
         <span className="text-2xl font-title font-bold text-primary select-none tracking-tight">Unibuddy</span>
