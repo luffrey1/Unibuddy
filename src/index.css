@@ -1,0 +1,111 @@
+@import "inter-ui/inter.css";
+@import "@fontsource/rubik/latin.css";
+@import "tailwindcss";
+@import "./styles/animations.css";
+
+@theme {
+  --color-primary: #2563eb; /* azul vibrante */
+  --color-secondary: #34d399; /* verde menta */
+  --color-accent: #a78bfa; /* lila pastel */
+  --color-bg: #f8fafc; /* fondo claro */
+  --color-bg-dark: #18181b; /* fondo oscuro */
+  --color-glass: rgba(255,255,255,0.7);
+  --color-glass-dark: rgba(24,24,27,0.7);
+  --color-bubble-user: #2563eb;
+  --color-bubble-bot: #34d399;
+  --color-bubble-bg: #e0e7ef;
+  --color-bubble-bg-dark: #334155;
+  --color-timestamp: #a1a1aa;
+  --font-main: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+  --font-title: 'Rubik', 'Inter', 'Segoe UI', 'Arial', sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-main);
+    background: var(--color-bg);
+    color: #18181b;
+    transition: background 0.3s, color 0.3s;
+  }
+  html.dark {
+    background: var(--color-bg-dark);
+    color: #f8fafc;
+  }
+  h1, h2, h3, .font-title {
+    font-family: var(--font-title);
+    letter-spacing: 0.01em;
+  }
+}
+
+header {
+  background: var(--color-glass);
+  color: #18181b;
+  transition: background 0.3s, color 0.3s;
+}
+html.dark header {
+  background: var(--color-glass-dark);
+  color: #f8fafc;
+}
+
+/* Fondo clarito para el main wrapper */
+main {
+  background: #f3f6fa;
+  color: inherit;
+  transition: background 0.3s, color 0.3s;
+}
+html.dark main {
+  background: transparent;
+}
+
+/* Fondo y contraste del área del chat */
+section[aria-label*="chat"] {
+  background: var(--color-glass);
+  color: #18181b;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+html.dark section[aria-label*="chat"] {
+  background: var(--color-glass-dark);
+  color: #f8fafc;
+  border: 1px solid #27272a;
+}
+
+/* Refuerza el texto de los mensajes para contraste */
+section[aria-label*="chat"] .text-gray-900 {
+  color: #18181b !important;
+}
+section[aria-label*="chat"] .text-gray-100 {
+  color: #f8fafc !important;
+}
+html.dark section[aria-label*="chat"] .text-gray-900 {
+  color: #f8fafc !important;
+}
+html.dark section[aria-label*="chat"] .text-gray-100 {
+  color: #18181b !important;
+}
+
+/* Fondo y borde del área de input (sticky bottom) */
+section[aria-label*="chat"] form[role="search"] {
+  background: rgba(255,255,255,0.8);
+  border-top: 1px solid #e5e7eb;
+  backdrop-filter: blur(8px);
+  transition: background 0.3s, border 0.3s;
+}
+html.dark section[aria-label*="chat"] form[role="search"] {
+  background: rgba(24,24,27,0.8);
+  border-top: 1px solid #27272a;
+}
+
+/* Fondo y color del input de texto del chat */
+#chat-input {
+  background: var(--color-bg);
+  color: #18181b;
+  border: 1px solid #d1d5db;
+  transition: background 0.3s, color 0.3s, border 0.3s;
+}
+html.dark #chat-input {
+  background: var(--color-bg-dark);
+  color: #f8fafc;
+  border: 1px solid #52525b;
+}

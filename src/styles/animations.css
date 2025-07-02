@@ -1,0 +1,24 @@
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s cubic-bezier(.4,0,.2,1);
+  }
+  .animate-bubble-in-left {
+    animation: bubble-in-left 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .animate-bubble-in-right {
+    animation: bubble-in-right 0.4s cubic-bezier(.4,0,.2,1);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes bubble-in-left {
+  from { opacity: 0; transform: translateX(-30px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes bubble-in-right {
+  from { opacity: 0; transform: translateX(30px) scale(0.95); }
+  to { opacity: 1; transform: none; }
+} 
